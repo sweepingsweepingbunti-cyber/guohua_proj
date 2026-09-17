@@ -1,7 +1,8 @@
 {
-  "name": "solar-series",
+  "name": "ai-learning-hub",
+  "description": "AI 学习园地 —— 从原理到实战的大模型学习分享平台",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "engines": {
     "node": ">=22.12.0"
   },

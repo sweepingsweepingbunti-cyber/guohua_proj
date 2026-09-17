@@ -1,0 +1,182 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import { PROJECTS, projectRepo } from '../data/projects';
+import { SITE } from '../data/site';
+---
+
+<BaseLayout
+	title={`开发项目 · ${SITE.name}`}
+	description="学习之外自己动手做的一些小工具和 Demo：键盘注入、教程转 PDF、网页游戏与游戏工具包、本地文档问答。"
+>
+	<PageHero
+		title="开发项目"
+		subtitle="学大模型的过程里顺手写的工具和 Demo，能独立拿出来的都整理在这。代码陆续开源到 GitHub。"
+		eyebrow={`共 ${PROJECTS.length} 个项目`}
+	>
+		<div class="cta">
+			<a
+				class="btn btn--ghost"
+				href={SITE.social.github}
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				GitHub 主页 →
+			</a>
+		</div>
+	</PageHero>
+
+	<section class="container section">
+		<div class="grid grid--2">
+			{
+				PROJECTS.map((project) => (
+					<article class="project card">
+						<header class="project-head">
+							<span class="project-icon" aria-hidden="true">
+								{project.icon}
+							</span>
+							<div class="project-title">
+								<div class="project-name-row">
+									<h2>{project.name}</h2>
+									{project.badge && <span class="pill pill--accent">{project.badge}</span>}
+								</div>
+								<p class="project-tagline muted">{project.tagline}</p>
+							</div>
+						</header>
+
+						<p class="project-desc muted">{project.desc}</p>
+
+						<footer class="project-foot">
+							<ul class="tags">
+								{project.tags.map((tag) => (
+									<li class="pill">{tag}</li>
+								))}
+							</ul>
+
+							<a
+								class="repo-link"
+								href={projectRepo(project)}
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								查看代码 →
+							</a>
+						</footer>
+					</article>
+				))
+			}
+		</div>
+
+		<p class="footnote dim">
+			注：部分仓库还在整理中，链接暂时指向 GitHub 主页；点进去没有对应项目就说明还没公开。
+		</p>
+	</section>
+</BaseLayout>
+
+<style>
+	.cta {
+		display: flex;
+		gap: 12px;
+		margin-top: 24px;
+		flex-wrap: wrap;
+	}
+
+	.project {
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+		padding: 24px;
+	}
+
+	.project-head {
+		display: flex;
+		gap: 14px;
+		align-items: flex-start;
+	}
+
+	.project-icon {
+		font-size: 1.6rem;
+		line-height: 1.15;
+		flex: none;
+	}
+
+	.project-title {
+		min-width: 0;
+		flex: 1;
+	}
+
+	.project-name-row {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		flex-wrap: wrap;
+	}
+
+	.project h2 {
+		margin: 0;
+		font-size: 1.05rem;
+		color: #fff;
+		font-family: var(--font-mono);
+		letter-spacing: -0.01em;
+	}
+
+	.project-name-row .pill {
+		font-size: 0.7rem;
+		padding: 1px 8px;
+	}
+
+	.project-tagline {
+		margin: 6px 0 0;
+		font-size: 0.85rem;
+		line-height: 1.55;
+	}
+
+	.project-desc {
+		margin: 0;
+		font-size: 0.88rem;
+		line-height: 1.75;
+	}
+
+	/* 把标签和仓库链接压到卡片底部，多张卡片并排时对齐 */
+	.project-foot {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		flex-wrap: wrap;
+		margin-top: auto;
+		padding-top: 4px;
+	}
+
+	.tags {
+		display: flex;
+		gap: 6px;
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		flex-wrap: wrap;
+	}
+
+	.tags .pill {
+		font-size: 0.72rem;
+		padding: 2px 9px;
+	}
+
+	.repo-link {
+		flex: none;
+		font-size: 0.84rem;
+		white-space: nowrap;
+	}
+
+	.footnote {
+		margin: 32px 0 0;
+		font-size: 0.8rem;
+		line-height: 1.7;
+	}
+
+	@media (max-width: 768px) {
+		.project {
+			padding: 20px;
+		}
+	}
+</style>

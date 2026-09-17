@@ -1,0 +1,299 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import Subscribe from '../../components/Subscribe.astro';
+import { SITE } from '../../data/site';
+import { getSortedPaths } from '../../utils/content';
+
+const paths = await getSortedPaths();
+
+// 每条路线的 Markdown 正文就是它的说明，先渲染好再进模板
+const items = await Promise.all(
+	paths.map(async (path) => ({
+		path,
+		Content: (await render(path)).Content,
+	})),
+);
+---
+
+<BaseLayout
+	title={`学习路线 · ${SITE.name}`}
+	description="把零散的文章串成能走完的路径：从 Transformer 原理，到大模型应用开发与微调实战。"
+>
+	<PageHero
+		title="学习路线"
+		subtitle="不知道该从哪看起的时候，照着路线图的顺序走就行。每个阶段都会指到对应的文章或资源。"
+		eyebrow={`共 ${paths.length} 条路线`}
+	/>
+
+	<section class="container section">
+		{
+			paths.length > 0 ? (
+				<div class="path-list">
+					{items.map(({ path, Content }, idx) => (
+						<article class="path card">
+							<header class="path-head">
+								<span class="path-icon" aria-hidden="true">
+									{path.data.icon}
+								</span>
+								<div class="path-title-wrap">
+									<div class="path-title-row">
+										<h2>{path.data.title}</h2>
+										<span class="pill pill--accent">{path.data.level}</span>
+									</div>
+									<p class="muted">{path.data.description}</p>
+								</div>
+								<span class="path-index dim">0{idx + 1}</span>
+							</header>
+
+							<div class="path-prose prose">
+								<Content />
+							</div>
+
+							{path.data.steps.length > 0 && (
+								<ol class="steps">
+									{path.data.steps.map((step, i) => (
+										<li>
+											<span class="step-no">{i + 1}</span>
+											<div class="step-body">
+												{step.href ? (
+													<a class="step-title" href={step.href}>
+														{step.title}
+													</a>
+												) : (
+													<strong class="step-title">{step.title}</strong>
+												)}
+												<p class="step-desc muted">{step.desc}</p>
+											</div>
+										</li>
+									))}
+								</ol>
+							)}
+						</article>
+					))}
+				</div>
+			) : (
+				<div class="empty card">
+					<p>
+						还没有学习路线。在 <code>src/content/paths/</code> 下新建 .md 文件，用 steps
+						字段把文章串起来。
+					</p>
+				</div>
+			)
+		}
+	</section>
+
+	<section class="container section section--tight">
+		<Subscribe />
+	</section>
+</BaseLayout>
+
+<style>
+	.path-list {
+		display: flex;
+		flex-direction: column;
+		gap: 22px;
+	}
+
+	.path {
+		padding: 26px 28px;
+	}
+
+	.path-head {
+		display: flex;
+		gap: 16px;
+		align-items: flex-start;
+	}
+
+	.path-icon {
+		font-size: 1.7rem;
+		line-height: 1.2;
+		flex: none;
+	}
+
+	.path-title-wrap {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.path-title-row {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		flex-wrap: wrap;
+	}
+
+	.path h2 {
+		margin: 0;
+		font-size: 1.2rem;
+		color: #fff;
+		letter-spacing: -0.01em;
+	}
+
+	.path-title-wrap p {
+		margin: 8px 0 0;
+		font-size: 0.9rem;
+		line-height: 1.65;
+	}
+
+	.path-index {
+		font-size: 1.5rem;
+		font-weight: 700;
+		line-height: 1;
+		opacity: 0.25;
+		flex: none;
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* ---------- 路线说明（Markdown 正文） ---------- */
+
+	/* 这里的正文是「引言」性质，比文章页的 .prose 收敛一些，
+	   所以用更高的选择器优先级覆盖 global.css 里的 .prose 规则 */
+	.path-prose {
+		margin-top: 18px;
+		padding-left: 16px;
+		border-left: 2px solid var(--border);
+		font-size: 0.9rem;
+		color: var(--text-muted);
+	}
+
+	.path-prose :global(p) {
+		margin: 0.7em 0 0;
+		line-height: 1.75;
+	}
+
+	.path-prose :global(p:first-child) {
+		margin-top: 0;
+	}
+
+	.path-prose :global(h2),
+	.path-prose :global(h3) {
+		font-size: 0.95rem;
+		color: var(--text);
+		margin: 1.3em 0 0.4em;
+		padding-bottom: 0;
+		border-bottom: none;
+	}
+
+	.path-prose :global(ol),
+	.path-prose :global(ul) {
+		margin: 0.7em 0 0;
+		padding-left: 1.3em;
+	}
+
+	.path-prose :global(li) {
+		margin-top: 0.35em;
+	}
+
+	.path-prose :global(strong) {
+		color: var(--text);
+	}
+
+	/* ---------- 步骤时间线 ---------- */
+	.steps {
+		list-style: none;
+		margin: 24px 0 0;
+		padding: 0 0 0 4px;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.steps li {
+		position: relative;
+		display: flex;
+		gap: 14px;
+		padding: 0 0 22px 0;
+	}
+
+	/* 竖线：最后一个步骤不画 */
+	.steps li::before {
+		content: '';
+		position: absolute;
+		left: 12px;
+		top: 26px;
+		bottom: 0;
+		width: 1px;
+		background: var(--border);
+	}
+
+	.steps li:last-child {
+		padding-bottom: 0;
+	}
+
+	.steps li:last-child::before {
+		display: none;
+	}
+
+	.step-no {
+		position: relative;
+		z-index: 1;
+		flex: none;
+		width: 25px;
+		height: 25px;
+		border-radius: 50%;
+		display: grid;
+		place-items: center;
+		font-size: 0.76rem;
+		font-weight: 600;
+		color: var(--accent);
+		background: var(--bg-elev-2);
+		border: 1px solid var(--border-hi);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.step-body {
+		min-width: 0;
+		padding-top: 1px;
+	}
+
+	.step-title {
+		display: inline-block;
+		font-size: 0.96rem;
+		color: var(--text);
+		font-weight: 500;
+		line-height: 1.5;
+	}
+
+	a.step-title {
+		border-bottom: 1px solid rgba(56, 189, 248, 0.3);
+	}
+
+	a.step-title:hover {
+		color: var(--accent);
+		border-bottom-color: var(--accent);
+	}
+
+	.step-desc {
+		margin: 4px 0 0;
+		font-size: 0.85rem;
+		line-height: 1.6;
+	}
+
+	.empty {
+		text-align: center;
+		padding: 40px;
+	}
+
+	.empty p {
+		margin: 0;
+		color: var(--text-muted);
+		font-size: 0.92rem;
+	}
+
+	.empty code {
+		font-family: var(--font-mono);
+		font-size: 0.88em;
+		color: var(--accent);
+	}
+
+	@media (max-width: 768px) {
+		.path {
+			padding: 20px;
+		}
+
+		.path-index {
+			display: none;
+		}
+	}
+</style>

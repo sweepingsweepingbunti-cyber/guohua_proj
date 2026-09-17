@@ -1,0 +1,65 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PageHero from '../../../components/PageHero.astro';
+import PostCard from '../../../components/PostCard.astro';
+import { CATEGORIES, CATEGORY_SLUGS, SITE } from '../../../data/site';
+import { getPublishedPosts } from '../../../utils/content';
+
+export async function getStaticPaths() {
+	// 七个分类都生成页面，这样导航里的链接永远不会 404
+	return CATEGORY_SLUGS.map((category) => ({ params: { category } }));
+}
+
+const { category } = Astro.params;
+const meta = CATEGORIES[category as keyof typeof CATEGORIES];
+
+const posts = (await getPublishedPosts()).filter((p) => p.data.category === category);
+---
+
+<BaseLayout
+	title={`${meta?.label ?? category} · ${SITE.name}`}
+	description={meta?.desc ?? `按分类浏览文章：${category}`}
+>
+	<PageHero
+		title={meta?.label ?? category}
+		subtitle={meta?.desc}
+		eyebrow={`共 ${posts.length} 篇`}
+	>
+		<div class="back-row">
+			<a class="pill" href="/blog">← 全部文章</a>
+		</div>
+	</PageHero>
+
+	<section class="container section">
+		{
+			posts.length > 0 ? (
+				<div class="grid grid--2">
+					{posts.map((post) => (
+						<PostCard post={post} />
+					))}
+				</div>
+			) : (
+				<div class="empty card">
+					<p>这个分类下还没有文章，先去看看其他分类吧。</p>
+				</div>
+			)
+		}
+	</section>
+</BaseLayout>
+
+<style>
+	.back-row {
+		margin-top: 22px;
+	}
+
+	.empty {
+		text-align: center;
+		padding: 40px;
+	}
+
+	.empty p {
+		margin: 0;
+		color: var(--text-muted);
+		font-size: 0.92rem;
+	}
+</style>

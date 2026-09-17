@@ -1,0 +1,69 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PageHero from '../../../components/PageHero.astro';
+import PostCard from '../../../components/PostCard.astro';
+import { SITE } from '../../../data/site';
+import { collectTags, getPublishedPosts } from '../../../utils/content';
+
+export async function getStaticPaths() {
+	const posts = await getPublishedPosts();
+	const tags = collectTags(posts).map((t) => t.tag);
+	return tags.map((tag) => ({ params: { tag } }));
+}
+
+const { tag } = Astro.params;
+const posts = (await getPublishedPosts()).filter((p) => p.data.tags.includes(tag!));
+const otherTags = collectTags(await getPublishedPosts()).filter((t) => t.tag !== tag);
+---
+
+<BaseLayout
+	title={`#${tag} · ${SITE.name}`}
+	description={`标签「${tag}」下的全部文章，共 ${posts.length} 篇。`}
+>
+	<PageHero title={`#${tag}`} eyebrow={`共 ${posts.length} 篇`}>
+		<div class="back-row">
+			<a class="pill" href="/blog">← 全部文章</a>
+		</div>
+	</PageHero>
+
+	<section class="container section">
+		<div class="grid grid--2">
+			{posts.map((post) => <PostCard post={post} />)}
+		</div>
+	</section>
+
+	{
+		otherTags.length > 0 && (
+			<section class="container section section--tight">
+				<div class="section-head">
+					<h2>其他标签</h2>
+				</div>
+				<div class="tag-cloud">
+					{otherTags.map(({ tag: t, count }) => (
+						<a class="pill" href={`/blog/tags/${t}`}>
+							#{t}
+							<span class="tab-count">{count}</span>
+						</a>
+					))}
+				</div>
+			</section>
+		)
+	}
+</BaseLayout>
+
+<style>
+	.back-row {
+		margin-top: 22px;
+	}
+
+	.tag-cloud {
+		display: flex;
+		gap: 8px;
+		flex-wrap: wrap;
+	}
+
+	.tab-count {
+		font-size: 0.72em;
+		opacity: 0.6;
+	}
+</style>

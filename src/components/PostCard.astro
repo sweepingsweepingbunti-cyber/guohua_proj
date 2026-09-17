@@ -1,0 +1,147 @@
+---
+import { categoryLabel } from '../data/site';
+import { formatDate, readingTime, type Post } from '../utils/content';
+
+interface Props {
+	post: Post;
+}
+
+const { post } = Astro.props;
+const { title, description, pubDate, category, tags } = post.data;
+
+// 整个卡片是一个链接，所以标签在这里只是文本、不能再嵌一层 <a>
+const minutes = readingTime(post.body);
+const shownTags = tags.slice(0, 3);
+const restTags = tags.length - shownTags.length;
+---
+
+<article class="post-card card">
+	<a class="card-hit" href={`/blog/${post.id}`}>
+		<div class="card-top">
+			<span class="pill pill--accent">{categoryLabel(category)}</span>
+			<time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
+		</div>
+
+		<h3>{title}</h3>
+		<p class="desc">{description}</p>
+
+		<div class="card-bottom">
+			<span class="read">
+				<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+					<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" fill="none"
+					></circle>
+					<path d="M12 7.5V12l3 2" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"
+					></path>
+				</svg>
+				{minutes} 分钟
+			</span>
+			{
+				shownTags.length > 0 && (
+					<span class="tags">
+						{shownTags.map((t) => (
+							<span class="pill">{t}</span>
+						))}
+						{restTags > 0 && <span class="pill">+{restTags}</span>}
+					</span>
+				)
+			}
+		</div>
+	</a>
+</article>
+
+<style>
+	.post-card {
+		padding: 0;
+		overflow: hidden;
+	}
+
+	.post-card:hover {
+		border-color: var(--border-hi);
+		background: var(--bg-elev-2);
+		transform: translateY(-2px);
+	}
+
+	/* 链接铺满整张卡片，点击热区大，但内部只有一个 <a>，语义合法 */
+	.card-hit {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		padding: 22px;
+		height: 100%;
+		color: inherit;
+	}
+
+	.card-hit:hover {
+		color: inherit;
+	}
+
+	.card-top {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+	}
+
+	.card-top time {
+		font-size: 0.8rem;
+		color: var(--text-dim);
+		font-variant-numeric: tabular-nums;
+	}
+
+	h3 {
+		margin: 0;
+		font-size: 1.08rem;
+		line-height: 1.45;
+		letter-spacing: -0.01em;
+		color: #fff;
+		transition: color 0.18s var(--ease);
+	}
+
+	.post-card:hover h3 {
+		color: var(--accent);
+	}
+
+	.desc {
+		margin: 0;
+		font-size: 0.9rem;
+		line-height: 1.65;
+		color: var(--text-muted);
+		/* 摘要最多三行，卡片高度才整齐 */
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		line-clamp: 3;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	.card-bottom {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		margin-top: auto;
+		padding-top: 12px;
+		border-top: 1px solid var(--border);
+		flex-wrap: wrap;
+	}
+
+	.read {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		font-size: 0.8rem;
+		color: var(--text-dim);
+		flex: none;
+	}
+
+	.tags {
+		display: flex;
+		gap: 6px;
+		flex-wrap: wrap;
+	}
+
+	.tags .pill {
+		font-size: 0.72rem;
+		padding: 1px 8px;
+	}
+</style>

@@ -1,0 +1,213 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import Subscribe from '../components/Subscribe.astro';
+import { CATEGORIES, CATEGORY_SLUGS, SITE } from '../data/site';
+import { getPublishedPosts, getSortedPaths } from '../utils/content';
+
+const posts = await getPublishedPosts();
+const paths = await getSortedPaths();
+
+const topics = CATEGORY_SLUGS.map((slug) => ({
+	slug,
+	label: CATEGORIES[slug].label,
+	desc: CATEGORIES[slug].desc,
+	count: posts.filter((p) => p.data.category === slug).length,
+})).filter((t) => t.count > 0);
+---
+
+<BaseLayout
+	title={`关于本站 · ${SITE.name}`}
+	description={`${SITE.name} 是一个专注大模型学习与分享的中文站点：${SITE.description}`}
+>
+	<PageHero title="关于本站" subtitle={SITE.description} eyebrow="About" />
+
+	<section class="container section">
+		<div class="about-grid">
+			<div class="main-col">
+				<div class="prose">
+					<h2>这里写什么</h2>
+					<p>
+						大模型这个领域信息密度很高，但真正难的不是找不到资料，而是
+						<strong>不知道先看什么、看到哪算够</strong>。这个站点的目标就是解决这个问题：
+						把散落的知识整理成有顺序的笔记，让每一步都清楚自己在哪、下一步去哪。
+					</p>
+					<p>
+						内容以中文为主，偏向「能动手跑起来」的实践记录。原理的部分尽量追溯到原始论文，
+						工程的部分尽量给出可运行的代码片段和踩过的坑。
+					</p>
+
+					<h2>现在有什么</h2>
+					<ul>
+						<li>
+							<strong>{posts.length} 篇文章</strong>，覆盖基础原理、提示工程、检索增强、
+							智能体、微调训练等主题
+						</li>
+						<li>
+							<strong>{paths.length} 条学习路线</strong>，把文章按「先学什么、再学什么」串起来
+						</li>
+						<li>
+							<a href="/resources">资源导航</a>，精选的论文、模型、工具、课程与社区入口
+						</li>
+						<li>
+							<a href="/column">学习专栏</a>，一份 14 个模块的 AI 学习框架，从数学基础到 AI-EDA
+						</li>
+						<li>
+							<a href="/projects">开发项目</a>，学习过程中顺手写的工具和 Demo，代码陆续开源
+						</li>
+					</ul>
+
+					<h2>关于作者</h2>
+					<p>
+						{SITE.author.name} —— {SITE.author.bio}
+					</p>
+
+					<h2>怎么联系</h2>
+					<p>
+						目前最稳定的更新渠道是 <a href="/rss.xml">RSS</a>。如果发现文章里有错误，
+						或者想讨论某个话题，欢迎指出来，我会尽量在文章里更正。项目代码放在
+						<a href={SITE.social.github} target="_blank" rel="noopener noreferrer">GitHub</a> 上。
+					</p>
+				</div>
+			</div>
+
+			<aside class="side-col">
+				<div class="card side-card">
+					<h3>站点信息</h3>
+					<dl>
+						<dt>域名</dt>
+						<dd>{new URL(SITE.url).hostname}</dd>
+						<dt>文章数</dt>
+						<dd>{posts.length}</dd>
+						<dt>学习路线</dt>
+						<dd>{paths.length}</dd>
+						<dt>语言</dt>
+						<dd>简体中文</dd>
+					</dl>
+				</div>
+
+				{
+					topics.length > 0 && (
+						<div class="card side-card">
+							<h3>覆盖主题</h3>
+							<ul class="topic-list">
+								{topics.map((t) => (
+									<li>
+										<a href={`/blog/category/${t.slug}`}>
+											<span>{t.label}</span>
+											<span class="dim">{t.count} 篇</span>
+										</a>
+									</li>
+								))}
+							</ul>
+						</div>
+					)
+				}
+
+				<div class="card side-card">
+					<h3>技术栈</h3>
+					<ul class="topic-list">
+						<li><span>框架</span><span class="dim">Astro</span></li>
+						<li><span>内容</span><span class="dim">Markdown</span></li>
+						<li><span>部署</span><span class="dim">Netlify</span></li>
+					</ul>
+				</div>
+			</aside>
+		</div>
+	</section>
+
+	<section class="container section section--tight">
+		<Subscribe />
+	</section>
+</BaseLayout>
+
+<style>
+	.about-grid {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) 280px;
+		gap: 48px;
+		align-items: start;
+	}
+
+	.main-col .prose h2:first-child {
+		margin-top: 0;
+	}
+
+	.side-col {
+		display: flex;
+		flex-direction: column;
+		gap: 18px;
+		position: sticky;
+		top: 90px;
+	}
+
+	.side-card {
+		padding: 20px;
+	}
+
+	.side-card h3 {
+		margin: 0 0 14px;
+		font-size: 0.95rem;
+		color: #fff;
+	}
+
+	dl {
+		margin: 0;
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 8px 16px;
+		font-size: 0.85rem;
+	}
+
+	dt {
+		color: var(--text-dim);
+	}
+
+	dd {
+		margin: 0;
+		text-align: right;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.topic-list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 9px;
+		font-size: 0.85rem;
+	}
+
+	.topic-list li,
+	.topic-list a {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 12px;
+	}
+
+	.topic-list a {
+		color: var(--text-muted);
+	}
+
+	.topic-list a:hover {
+		color: var(--accent);
+	}
+
+	.topic-list .dim {
+		font-size: 0.78rem;
+		flex: none;
+	}
+
+	@media (max-width: 1024px) {
+		.about-grid {
+			grid-template-columns: minmax(0, 1fr);
+			gap: 32px;
+		}
+
+		.side-col {
+			position: static;
+		}
+	}
+</style>

@@ -1,0 +1,126 @@
+---
+import { SITE } from '../data/site';
+
+interface Props {
+	/** 紧凑模式用于文章底部 */
+	compact?: boolean;
+}
+
+const { compact = false } = Astro.props;
+const hasEmail = SITE.social.email.length > 0;
+---
+
+<section class:list={['subscribe', { compact }]}>
+	<div class="subscribe-inner card">
+		<div class="subscribe-text">
+			<h2>订阅更新</h2>
+			<p class="muted">
+				新文章发布时会同步到 RSS，用任意阅读器（Feedly、Inoreader、NetNewsWire）订阅即可，不需要留邮箱。
+			</p>
+		</div>
+
+		<div class="subscribe-actions">
+			<a class="btn btn--primary" href="/rss.xml">
+				<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+					<circle cx="6.2" cy="17.8" r="2.2" fill="currentColor"></circle>
+					<path
+						d="M4 10.4a9.6 9.6 0 019.6 9.6M4 4.4A15.6 15.6 0 0119.6 20"
+						stroke="currentColor"
+						stroke-width="2.1"
+						fill="none"
+						stroke-linecap="round"></path>
+				</svg>
+				订阅 RSS
+			</a>
+			{
+				hasEmail && (
+					<a class="btn btn--ghost" href={`mailto:${SITE.social.email}`}>
+						邮件联系
+					</a>
+				)
+			}
+		</div>
+	</div>
+
+	{
+		!compact && (
+			<p class="note dim">
+				提示：邮件订阅还没有接后端，需要的话把 <code>Subscribe.astro</code> 里的占位换成你的邮件服务表单即可。
+			</p>
+		)
+	}
+</section>
+
+<style>
+	.subscribe {
+		margin-top: 8px;
+	}
+
+	.subscribe-inner {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 28px;
+		padding: 28px 30px;
+		background:
+			radial-gradient(120% 160% at 100% 0%, rgba(167, 139, 250, 0.12), transparent 55%),
+			radial-gradient(120% 160% at 0% 100%, rgba(56, 189, 248, 0.12), transparent 55%),
+			var(--bg-elev);
+		border-color: var(--border-hi);
+		flex-wrap: wrap;
+	}
+
+	.subscribe h2 {
+		margin: 0 0 6px;
+		font-size: 1.2rem;
+	}
+
+	.subscribe p {
+		margin: 0;
+		font-size: 0.9rem;
+		line-height: 1.65;
+	}
+
+	.subscribe-text {
+		flex: 1 1 340px;
+		max-width: 60ch;
+	}
+
+	.subscribe-actions {
+		display: flex;
+		gap: 10px;
+		flex-wrap: wrap;
+		flex: none;
+	}
+
+	.note {
+		margin: 12px 2px 0;
+		font-size: 0.78rem;
+	}
+
+	.note code {
+		font-family: var(--font-mono);
+		font-size: 0.92em;
+		color: var(--text-muted);
+	}
+
+	.compact .subscribe-inner {
+		padding: 22px 24px;
+	}
+
+	@media (max-width: 768px) {
+		.subscribe-inner {
+			padding: 22px 20px;
+			gap: 18px;
+		}
+
+		.subscribe-actions {
+			width: 100%;
+		}
+
+		.subscribe-actions .btn {
+			flex: 1;
+			justify-content: center;
+		}
+	}
+</style>

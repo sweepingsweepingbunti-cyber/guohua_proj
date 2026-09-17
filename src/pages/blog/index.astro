@@ -1,0 +1,122 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import PostCard from '../../components/PostCard.astro';
+import Subscribe from '../../components/Subscribe.astro';
+import { CATEGORIES, CATEGORY_SLUGS, SITE } from '../../data/site';
+import { collectTags, countByCategory, getPublishedPosts } from '../../utils/content';
+
+const posts = await getPublishedPosts();
+const counts = countByCategory(posts);
+const tags = collectTags(posts);
+
+// 只显示真的有文章的分类，避免出现空 tab
+const tabs = CATEGORY_SLUGS.filter((slug) => (counts[slug] ?? 0) > 0).map((slug) => ({
+	slug,
+	label: CATEGORIES[slug].label,
+	count: counts[slug],
+}));
+---
+
+<BaseLayout
+	title={`全部文章 · ${SITE.name}`}
+	description={`共 ${posts.length} 篇大模型学习笔记，涵盖基础原理、提示工程、检索增强、智能体与微调训练。`}
+>
+	<PageHero
+		title="全部文章"
+		subtitle="从底层原理到工程实践，按发布时间倒序排列。想按主题看就用下面的分类。"
+		eyebrow={`共 ${posts.length} 篇`}
+	>
+		{
+			tabs.length > 0 && (
+				<div class="tabs">
+					{tabs.map((tab) => (
+						<a class="pill" href={`/blog/category/${tab.slug}`}>
+							{tab.label}
+							<span class="tab-count">{tab.count}</span>
+						</a>
+					))}
+				</div>
+			)
+		}
+	</PageHero>
+
+	<section class="container section">
+		{
+			posts.length > 0 ? (
+				<div class="grid grid--2">
+					{posts.map((post) => (
+						<PostCard post={post} />
+					))}
+				</div>
+			) : (
+				<div class="empty card">
+					<p>
+						还没有文章。在 <code>src/content/blog/</code> 下新建一个 .md 文件，写好 frontmatter
+						就会出现在这里。
+					</p>
+				</div>
+			)
+		}
+	</section>
+
+	{
+		tags.length > 0 && (
+			<section class="container section section--tight">
+				<div class="section-head">
+					<h2>标签</h2>
+				</div>
+				<div class="tag-cloud">
+					{tags.map(({ tag, count }) => (
+						<a class="pill" href={`/blog/tags/${tag}`}>
+							#{tag}
+							<span class="tab-count">{count}</span>
+						</a>
+					))}
+				</div>
+			</section>
+		)
+	}
+
+	<section class="container section section--tight">
+		<Subscribe />
+	</section>
+</BaseLayout>
+
+<style>
+	.tabs {
+		display: flex;
+		gap: 8px;
+		margin-top: 24px;
+		flex-wrap: wrap;
+	}
+
+	.tab-count {
+		font-size: 0.72em;
+		opacity: 0.6;
+		margin-left: 1px;
+	}
+
+	.tag-cloud {
+		display: flex;
+		gap: 8px;
+		flex-wrap: wrap;
+	}
+
+	.empty {
+		text-align: center;
+		padding: 40px;
+	}
+
+	.empty p {
+		margin: 0;
+		color: var(--text-muted);
+		font-size: 0.92rem;
+	}
+
+	.empty code {
+		font-family: var(--font-mono);
+		font-size: 0.88em;
+		color: var(--accent);
+	}
+</style>

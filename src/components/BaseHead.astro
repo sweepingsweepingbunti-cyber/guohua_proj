@@ -1,0 +1,50 @@
+---
+import { SITE } from '../data/site';
+import '../styles/global.css';
+
+interface Props {
+	/** 完整的 <title> 内容，不传就用站点默认标题 */
+	title?: string;
+	description?: string;
+	type?: 'website' | 'article';
+	publishedTime?: Date;
+}
+
+const {
+	title = SITE.title,
+	description = SITE.description,
+	type = 'website',
+	publishedTime,
+} = Astro.props;
+
+const site = Astro.site ?? new URL(SITE.url);
+const canonical = new URL(Astro.url.pathname, site);
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
+<meta name="generator" content={Astro.generator} />
+
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+
+<!-- RSS 订阅：浏览器和阅读器靠这个发现 feed -->
+<link rel="alternate" type="application/rss+xml" title={SITE.name} href={new URL('/rss.xml', site)} />
+
+<!-- Open Graph / 社交分享卡片 -->
+<meta property="og:type" content={type} />
+<meta property="og:site_name" content={SITE.name} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:locale" content="zh_CN" />
+{publishedTime && <meta property="article:published_time" content={publishedTime.toISOString()} />}
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+
+<meta name="theme-color" content="#0b0f19" />

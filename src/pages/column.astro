@@ -1,0 +1,143 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import { COLUMN_INTRO, COLUMN_MODULES, TOPIC_COUNT } from '../data/column';
+import { SITE } from '../data/site';
+---
+
+<BaseLayout
+	title={`学习专栏 · ${SITE.name}`}
+	description="一份面向 AI-native 芯片工程师的 AI 学习目录框架：14 个模块、85 个子主题，从数学基础一路到 AI-EDA 与 AI 硬件。"
+>
+	<PageHero
+		title="学习专栏"
+		subtitle={COLUMN_INTRO}
+		eyebrow={`${COLUMN_MODULES.length} 个模块 · ${TOPIC_COUNT} 个子主题`}
+	/>
+
+	<section class="container section">
+		<div class="board">
+			{
+				COLUMN_MODULES.map((module, idx) => (
+					<article class="module card" id={module.id}>
+						<header class="module-head">
+							<span class="module-no">{String(idx + 1).padStart(2, '0')}</span>
+							<div class="module-title">
+								<h2>{module.title}</h2>
+								<code class="module-dir">{module.dir}</code>
+							</div>
+							<span class="module-count dim">{module.topics.length}</span>
+						</header>
+
+						<ul class="topics">
+							{module.topics.map((topic) => (
+								<li class="pill">{topic}</li>
+							))}
+						</ul>
+					</article>
+				))
+			}
+		</div>
+
+		<p class="footnote dim">
+			说明：这里只列整理资料时定下的框架。每个子主题下对应的文章来自 CSDN、博客园、腾讯云和知乎专栏，
+			版权不属于本站，因此只在本地保存，不在线上公开。等我自己写出成篇的笔记，会补到
+			<a href="/blog">文章</a> 里。
+		</p>
+	</section>
+</BaseLayout>
+
+<style>
+	/* 卡片高度差别很大（最多的模块有 30 个子主题），
+	   用多列布局让它们自然错落，比 grid 留下一大片空白好看 */
+	.board {
+		columns: 2;
+		column-gap: 18px;
+	}
+
+	.module {
+		/* 多列布局里必须避免卡片被从中间劈开 */
+		break-inside: avoid;
+		display: block;
+		margin: 0 0 18px;
+		padding: 20px 22px;
+	}
+
+	.module-head {
+		display: flex;
+		align-items: flex-start;
+		gap: 12px;
+		margin-bottom: 14px;
+	}
+
+	.module-no {
+		flex: none;
+		font-size: 0.8rem;
+		font-weight: 700;
+		line-height: 1.6;
+		font-variant-numeric: tabular-nums;
+		background: var(--grad);
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+	}
+
+	.module-title {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.module h2 {
+		margin: 0;
+		font-size: 0.98rem;
+		color: #fff;
+		letter-spacing: -0.01em;
+	}
+
+	.module-dir {
+		display: block;
+		margin-top: 4px;
+		font-family: var(--font-mono);
+		font-size: 0.72rem;
+		color: var(--text-dim);
+		word-break: break-all;
+	}
+
+	.module-count {
+		flex: none;
+		font-size: 0.78rem;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.topics {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+
+	.topics .pill {
+		font-size: 0.74rem;
+		padding: 2px 9px;
+	}
+
+	.footnote {
+		margin: 32px 0 0;
+		font-size: 0.8rem;
+		line-height: 1.75;
+	}
+
+	@media (max-width: 900px) {
+		.board {
+			columns: 1;
+		}
+	}
+
+	@media (max-width: 768px) {
+		.module {
+			padding: 18px;
+		}
+	}
+</style>

@@ -1,0 +1,58 @@
+---
+/**
+ * 列表类页面的统一头部（文章列表 / 分类 / 标签 / 路线 / 资源 / 关于都用它）。
+ * 想加筛选条或按钮，塞进 slot 即可。
+ */
+interface Props {
+	title: string;
+	subtitle?: string;
+	/** 标题上方的小字，比如「共 12 篇」 */
+	eyebrow?: string;
+}
+
+const { title, subtitle, eyebrow } = Astro.props;
+---
+
+<section class="page-hero">
+	<div class="glow glow--a"></div>
+
+	<div class="container page-hero-inner">
+		{eyebrow && <p class="eyebrow">{eyebrow}</p>}
+		<h1 class="page-title">{title}</h1>
+		{subtitle && <p class="page-subtitle">{subtitle}</p>}
+		<slot />
+	</div>
+</section>
+
+<style>
+	.page-hero {
+		position: relative;
+		overflow: hidden;
+		padding: 52px 0 34px;
+		border-bottom: 1px solid var(--border);
+		background: linear-gradient(180deg, var(--bg-soft) 0%, var(--bg) 100%);
+	}
+
+	.page-hero-inner {
+		position: relative;
+		z-index: 1;
+	}
+
+	.eyebrow {
+		margin: 0 0 12px;
+		font-size: 0.8rem;
+		letter-spacing: 0.06em;
+		color: var(--accent);
+		text-transform: uppercase;
+	}
+
+	.page-hero :global(.page-title) {
+		color: #fff;
+	}
+
+	@media (max-width: 768px) {
+		.page-hero {
+			padding: 34px 0 26px;
+		}
+	}
+</style>

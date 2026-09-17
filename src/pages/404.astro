@@ -1,0 +1,75 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../data/site';
+---
+
+<BaseLayout title={`页面不存在 · ${SITE.name}`} description="这个地址没有对应的内容。">
+	<section class="notfound">
+		<div class="glow glow--a"></div>
+		<div class="glow glow--b"></div>
+
+		<div class="container inner">
+			<p class="code gradient-text">404</p>
+			<h1>这个页面不存在</h1>
+			<p class="muted">
+				链接可能写错了，或者文章被移动过。试试从下面这些入口重新找。
+			</p>
+
+			<div class="actions">
+				<a class="btn btn--primary" href="/">回到首页</a>
+				<a class="btn btn--ghost" href="/blog">浏览文章</a>
+			</div>
+		</div>
+	</section>
+</BaseLayout>
+
+<style>
+	.notfound {
+		position: relative;
+		overflow: hidden;
+		min-height: 62vh;
+		display: grid;
+		place-items: center;
+		text-align: center;
+		background: linear-gradient(180deg, var(--bg-soft) 0%, var(--bg) 100%);
+	}
+
+	.inner {
+		position: relative;
+		z-index: 1;
+	}
+
+	.code {
+		font-size: clamp(4rem, 14vw, 8rem);
+		font-weight: 800;
+		line-height: 1;
+		margin: 0 0 8px;
+		letter-spacing: -0.04em;
+	}
+
+	h1 {
+		margin: 0 0 12px;
+		font-size: clamp(1.3rem, 3vw, 1.8rem);
+		color: #fff;
+	}
+
+	.inner > .muted {
+		margin: 0 auto;
+		max-width: 44ch;
+	}
+
+	.actions {
+		display: flex;
+		gap: 12px;
+		justify-content: center;
+		margin-top: 30px;
+		flex-wrap: wrap;
+	}
+
+	@media (max-width: 768px) {
+		.actions .btn {
+			flex: 1;
+			justify-content: center;
+		}
+	}
+</style>

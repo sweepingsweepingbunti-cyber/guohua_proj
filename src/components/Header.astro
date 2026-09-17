@@ -1,0 +1,262 @@
+---
+import { SITE } from '../data/site';
+
+const path = Astro.url.pathname;
+
+/** 首页要精确匹配，其余用前缀匹配（这样 /blog/xxx 也能点亮「文章」） */
+function isActive(href: string): boolean {
+	return href === '/' ? path === '/' : path.startsWith(href);
+}
+---
+
+<header class="site-header">
+	<div class="container header-inner">
+		<a class="brand" href="/" aria-label={`${SITE.name} 首页`}>
+			<svg class="brand-mark" viewBox="0 0 32 32" width="30" height="30" aria-hidden="true">
+				<defs>
+					<linearGradient id="brandGrad" x1="0" y1="0" x2="32" y2="32">
+						<stop offset="0%" stop-color="#38bdf8"></stop>
+						<stop offset="100%" stop-color="#a78bfa"></stop>
+					</linearGradient>
+				</defs>
+				<rect x="1" y="1" width="30" height="30" rx="9" fill="url(#brandGrad)"></rect>
+				<path
+					d="M16 7.5l1.9 5.1 5.1 1.9-5.1 1.9L16 21.5l-1.9-5.1L9 14.5l5.1-1.9z"
+					fill="#0b0f19"></path>
+			</svg>
+			<span class="brand-text">
+				<strong>{SITE.name}</strong>
+				<small>大模型学习笔记</small>
+			</span>
+		</a>
+
+		<input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true" />
+		<nav class="nav" aria-label="主导航">
+			{
+				SITE.nav.map((item) => (
+					<a href={item.href} class:list={['nav-link', { active: isActive(item.href) }]}>
+						{item.label}
+					</a>
+				))
+			}
+			<a class="nav-rss" href="/rss.xml" title="RSS 订阅" aria-label="RSS 订阅">
+				<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
+					<circle cx="6.2" cy="17.8" r="2.2" fill="currentColor"></circle>
+					<path
+						d="M4 10.4a9.6 9.6 0 019.6 9.6M4 4.4A15.6 15.6 0 0119.6 20"
+						stroke="currentColor"
+						stroke-width="2.1"
+						fill="none"
+						stroke-linecap="round"></path>
+				</svg>
+			</a>
+		</nav>
+
+		<label for="nav-toggle" class="burger" aria-label="展开或收起导航菜单">
+			<span></span>
+			<span></span>
+			<span></span>
+		</label>
+	</div>
+</header>
+
+<style>
+	.site-header {
+		position: sticky;
+		top: 0;
+		z-index: 50;
+		background: rgba(11, 15, 25, 0.82);
+		backdrop-filter: blur(14px);
+		-webkit-backdrop-filter: blur(14px);
+		border-bottom: 1px solid var(--border);
+	}
+
+	.header-inner {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 20px;
+		height: 66px;
+	}
+
+	/* --- 品牌 --- */
+	.brand {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		color: var(--text);
+		flex: none;
+	}
+
+	.brand:hover {
+		color: var(--text);
+	}
+
+	.brand:hover .brand-mark {
+		transform: rotate(-8deg) scale(1.05);
+	}
+
+	.brand-mark {
+		transition: transform 0.3s var(--ease);
+		flex: none;
+	}
+
+	.brand-text {
+		display: flex;
+		flex-direction: column;
+		line-height: 1.15;
+	}
+
+	.brand-text strong {
+		font-size: 1rem;
+		letter-spacing: -0.01em;
+	}
+
+	.brand-text small {
+		font-size: 0.68rem;
+		color: var(--text-dim);
+		letter-spacing: 0.04em;
+	}
+
+	/* --- 导航 --- */
+	.nav {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+	}
+
+	.nav-link {
+		position: relative;
+		padding: 7px 13px;
+		border-radius: var(--radius-pill);
+		font-size: 0.92rem;
+		color: var(--text-muted);
+		transition: all 0.18s var(--ease);
+	}
+
+	.nav-link:hover {
+		color: var(--text);
+		background: rgba(148, 163, 184, 0.08);
+	}
+
+	.nav-link.active {
+		color: var(--accent);
+		background: var(--accent-soft);
+	}
+
+	.nav-rss {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 32px;
+		height: 32px;
+		margin-left: 6px;
+		border-radius: 50%;
+		border: 1px solid var(--border);
+		color: var(--text-dim);
+		transition: all 0.18s var(--ease);
+	}
+
+	.nav-rss:hover {
+		color: var(--accent);
+		border-color: var(--accent);
+		background: var(--accent-soft);
+	}
+
+	/* --- 汉堡按钮（纯 CSS，无需 JS） --- */
+	.nav-toggle {
+		display: none;
+	}
+
+	.burger {
+		display: none;
+		flex-direction: column;
+		justify-content: center;
+		gap: 5px;
+		width: 40px;
+		height: 40px;
+		padding: 9px;
+		border-radius: var(--radius-sm);
+		border: 1px solid var(--border);
+		cursor: pointer;
+		flex: none;
+	}
+
+	.burger span {
+		display: block;
+		height: 2px;
+		width: 100%;
+		background: var(--text-muted);
+		border-radius: 2px;
+		transition: all 0.22s var(--ease);
+	}
+
+	/* --- 移动端 --- */
+	@media (max-width: 860px) {
+		.header-inner {
+			height: 60px;
+			position: relative;
+		}
+
+		.brand-text small {
+			display: none;
+		}
+
+		.burger {
+			display: flex;
+		}
+
+		.nav {
+			display: none;
+			position: absolute;
+			top: calc(100% + 1px);
+			left: 0;
+			right: 0;
+			flex-direction: column;
+			align-items: stretch;
+			gap: 2px;
+			padding: 10px;
+			background: var(--bg-elev);
+			border: 1px solid var(--border);
+			border-radius: 0 0 var(--radius) var(--radius);
+			box-shadow: var(--shadow);
+		}
+
+		.nav-toggle:checked ~ .nav {
+			display: flex;
+		}
+
+		.nav-toggle:checked ~ .burger span:nth-child(1) {
+			transform: translateY(7px) rotate(45deg);
+		}
+
+		.nav-toggle:checked ~ .burger span:nth-child(2) {
+			opacity: 0;
+		}
+
+		.nav-toggle:checked ~ .burger span:nth-child(3) {
+			transform: translateY(-7px) rotate(-45deg);
+		}
+
+		.nav-link {
+			padding: 11px 14px;
+			border-radius: var(--radius-sm);
+		}
+
+		.nav-rss {
+			width: auto;
+			height: auto;
+			margin: 4px 0 0;
+			padding: 10px 14px;
+			border-radius: var(--radius-sm);
+			gap: 8px;
+			justify-content: flex-start;
+		}
+
+		/* 移动端菜单里补上 RSS 的文字说明 */
+		.nav-rss::after {
+			content: 'RSS 订阅';
+			font-size: 0.92rem;
+		}
+	}
+</style>
