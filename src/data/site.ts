@@ -35,9 +35,9 @@ export function categoryLabel(slug: string): string {
 }
 
 export const SITE = {
-	name: 'AI 学习园地',
+	name: '大模型学习交流平台',
 	/** 浏览器标题栏 / SEO title */
-	title: 'AI 学习园地 · 大模型学习与分享',
+	title: '大模型学习交流平台 · 从原理到实战',
 	description:
 		'从原理到实战的大模型学习笔记：Transformer、提示工程、RAG、Agent 与微调，配有结构化的学习路线和精选资源。',
 	url: 'https://guohua0siqi.online',
@@ -62,6 +62,6 @@ export const SITE = {
 	/** 留空字符串的项不会渲染 */
 	social: {
 		github: 'https://github.com/sweepingsweepingbunti-cyber',
-		email: '',
+		email: 'sweepingsweepingbunti@gmail.com',
 	},
 } as const;

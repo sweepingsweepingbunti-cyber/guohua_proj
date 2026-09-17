@@ -1,4 +1,4 @@
-# AI 学习园地
+# 大模型学习交流平台
 
 从原理到实战的大模型学习分享平台。基于 Astro 构建，通过 Git → Netlify 自动部署到 **[guohua0siqi.online](https://guohua0siqi.online)**。
 
@@ -160,8 +160,8 @@ steps:
 
 ```ts
 export const SITE = {
-  name: 'AI 学习园地',
-  title: 'AI 学习园地 · 大模型学习与分享',
+  name: '大模型学习交流平台',
+  title: '大模型学习交流平台 · 从原理到实战',
   description: '...',
   url: 'https://guohua0siqi.online',
   tagline: '掌握大模型，从原理到实战',

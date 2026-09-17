@@ -1,4 +1,4 @@
-# AI 学习园地 — 项目说明
+# 大模型学习交流平台 — 项目说明
 
 大模型学习分享平台，Astro 静态站，部署在 Netlify，绑定域名 `guohua0siqi.online`。
 
