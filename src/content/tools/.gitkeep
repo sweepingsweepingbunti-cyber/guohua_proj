@@ -1,0 +1,3 @@
+# 这个文件只是为了让空目录能进 git。
+# 审核通过的工具由 `npm run promote -- submissions/tools/issue-<n>.md` 写到这里。
+# 文件名 = 工具的 URL 片段，例如 /tools/mcp-filesystem-lite

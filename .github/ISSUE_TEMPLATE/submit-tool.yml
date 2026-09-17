@@ -1,0 +1,80 @@
+# 工具提交表单。
+#
+# ⚠️ 和 submit-article.yml 一样：label 的文字会被 scripts/intake.mjs 解析，
+#    改字必须同步改那边 TOOL_FIELDS。
+name: 提交一个 Agent 工具
+description: 推荐一个可供 agent 使用的工具或模块，审核通过后会展示在站点的「社区工具」页
+title: '[工具] '
+labels: ['投稿-工具']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        谢谢分享！审核通过后，这个工具会出现在站点的**社区工具**页。
+
+        **请注意本站的定位：只做展示，不运行也不下载任何第三方代码。** 页面上只会有
+        工具名称、说明、标签和跳转到你自己仓库的链接 —— 我不会托管你的代码，
+        也不会代你分发，所以请确保仓库地址是公开可访问的。
+
+        提交前请确认：这个工具是**你自己的作品**，或者你确认它允许被公开推荐。
+
+  - type: input
+    id: name
+    attributes:
+      label: 工具名称
+      description: 用仓库名或包名，便于别人搜索
+      placeholder: mcp-filesystem-lite
+    validations:
+      required: true
+
+  - type: input
+    id: repo
+    attributes:
+      label: 仓库地址
+      description: 完整的 https 地址。本站只做外链跳转，不镜像你的代码
+      placeholder: https://github.com/you/mcp-filesystem-lite
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 一句话说明
+      description: 会显示在工具卡片上，说清楚「它是给谁解决什么问题的」
+      placeholder: 给 agent 用的轻量文件系统 MCP server，只暴露读写和列目录三个工具
+    validations:
+      required: true
+
+  - type: textarea
+    id: body
+    attributes:
+      label: 它是做什么的
+      description: 展开讲讲使用场景、怎么接入、有什么限制。这段会显示在工具页正文里
+      placeholder: |
+        一个 MCP server，把本地目录暴露成 agent 可调用的工具。
+
+        接入方式：
+        ```json
+        { "command": "npx", "args": ["-y", "mcp-filesystem-lite"] }
+        ```
+    validations:
+      required: true
+
+  - type: input
+    id: tags
+    attributes:
+      label: 标签
+      description: 用逗号分隔，最多 8 个，便于分类浏览
+      placeholder: MCP, Agent, 文件系统
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: 授权确认
+      options:
+        - label: 这是我自己的作品，或我确认它可以被公开推荐
+          required: true
+        - label: 我理解本站只做展示，不托管、不运行、不下载执行这个工具的代码
+          required: true

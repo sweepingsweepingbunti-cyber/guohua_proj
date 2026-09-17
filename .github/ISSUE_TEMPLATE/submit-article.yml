@@ -1,0 +1,90 @@
+# 文章投稿表单。
+#
+# ⚠️ 下面每个 label 的文字都会被 scripts/intake.mjs 当作字段名解析，
+#    改这里的字必须同步改 scripts/intake.mjs 的 ARTICLE_FIELDS，否则投稿会落盘失败。
+#
+# 「分类」的选项必须和 src/data/site.ts 的 CATEGORY_SLUGS 一致（填 slug，不是中文名）。
+name: 投稿一篇文章
+description: 分享你的学习笔记或工程实践，审核通过后会发布在站点的「文章」栏目
+title: '[投稿] '
+labels: ['投稿-文章']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        谢谢投稿！填完提交即可，我会收到并人工审核，通过后文章会出现在站点的文章列表里。
+
+        **提交前请确认：**
+        - 是**原创**内容，或者你有权转载
+        - 正文里**不要写内嵌 HTML**（`<script>`、`<iframe>` 这类标签会被拒绝）
+        - 不要写 LaTeX 公式 —— 本站没装数学渲染，`$...$` 会原样显示。公式请用代码块
+        - 正文不要包含任何隐私信息或你无权公开的材料
+
+  - type: input
+    id: title
+    attributes:
+      label: 文章标题
+      description: 一行说清这篇讲什么，不要写成「学习笔记 3」
+      placeholder: 从零搭一个本地 RAG 问答的最小闭环
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 一句话摘要
+      description: 会显示在文章卡片和搜索结果里，建议 50–100 字
+      placeholder: 用最少的组件跑通「切分 → 向量化 → 检索 → 生成」四步……
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: 分类
+      description: 只能选一个，决定文章出现在哪个分类下
+      options:
+        - basics
+        - llm
+        - prompt
+        - rag
+        - agent
+        - finetune
+        - tools
+    validations:
+      required: true
+
+  - type: input
+    id: tags
+    attributes:
+      label: 标签
+      description: 用逗号分隔，最多 8 个
+      placeholder: RAG, 向量检索, 本地部署
+    validations:
+      required: false
+
+  - type: textarea
+    id: body
+    attributes:
+      label: 正文
+      description: 直接贴 Markdown。代码块请标明语言，例如 ```python
+      placeholder: |
+        ## 小标题
+
+        正文段落……
+
+        ```python
+        print("hello")
+        ```
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: 授权确认
+      options:
+        - label: 我确认这是原创内容，或我有权转载，并同意在本站发布
+          required: true
+        - label: 我知道正文中的内嵌 HTML 会被拒绝，投稿不等于必然发布（需要人工审核）
+          required: true

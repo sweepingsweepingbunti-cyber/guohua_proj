@@ -1,0 +1,8 @@
+# 关掉「空白 issue」，只留下面两个表单入口 ——
+# 投稿必须走表单，脚本按表单的字段名解析，自由格式的 issue 解析不了。
+blank_issues_enabled: false
+
+contact_links:
+  - name: 只是想聊聊 / 提建议
+    url: https://github.com/sweepingsweepingbunti-cyber/guohua_proj/discussions
+    about: 不是投稿的话，去 Discussions 更合适，不用占 issue。

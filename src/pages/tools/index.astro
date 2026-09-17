@@ -1,0 +1,262 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import { SITE } from '../../data/site';
+
+/**
+ * 社区工具展示页。
+ *
+ * ⚠️ 这个页面**只做展示**：名称、说明、标签、外链。
+ *    它不运行、不镜像、不下载执行任何第三方代码 —— tools 集合的 schema 里
+ *    刻意就没有安装/执行相关的字段。有人提交恶意工具，这里也不提供运行环境。
+ *    要加「在线试用」这类功能之前，先想清楚站点愿不愿意为别人的代码负责。
+ */
+
+// 过滤 draft：_example.md 是模板，不是真实收录
+// 注意：render() 返回的 Content 是**组件**不是字符串，得用 <Content /> 渲染，
+// 不能塞进 set:html —— 那样会抛 InvalidComponentArgs。
+const tools = await Promise.all(
+	(await getCollection('tools'))
+		.filter((entry) => !entry.data.draft)
+		.map(async (entry) => {
+			const { Content } = await render(entry);
+			return { entry, Content, ...entry.data };
+		}),
+);
+tools.sort((a, b) => b.addedDate.valueOf() - a.addedDate.valueOf());
+
+const submitUrl = `${SITE.repo}/issues/new?template=submit-tool.yml`;
+
+// 正文渲染成 HTML，放在卡片里折叠展示 —— 用 render 而不是自己解析 Markdown
+const toolCount = tools.length;
+---
+
+<BaseLayout
+	title={`社区工具 · ${SITE.name}`}
+	description="由社区提交、人工审核后收录的 agent 工具与模块。本站只做展示和外链，不托管、不运行任何第三方代码。"
+>
+	<PageHero
+		title="社区工具"
+		subtitle="大家提交的 agent 工具和模块。这里只做介绍和跳转 —— 代码在各自的仓库里，用之前请自己看一眼。"
+		eyebrow={toolCount > 0 ? `共 ${toolCount} 个工具` : '还没有收录'}
+	>
+		<div class="cta">
+			<a class="btn btn--primary" href={submitUrl} target="_blank" rel="noopener noreferrer">
+				提交一个工具 →
+			</a>
+			<a class="btn btn--ghost" href="/submit">投稿说明</a>
+		</div>
+	</PageHero>
+
+	<section class="container section">
+		<div class="notice card">
+			<strong>先说清楚：本站不运行这里的任何代码。</strong>
+			<p class="muted">
+				这些工具只是被介绍和链接，本站不托管它们的代码、不提供在线试用、也不会代你下载或执行。
+				点「查看仓库」会跳到作者自己的 GitHub —— 用之前请自行判断来源是否可信。
+			</p>
+		</div>
+
+		{
+			toolCount === 0 ? (
+				<div class="empty card">
+					<p class="empty-icon" aria-hidden="true">🧰</p>
+					<h2>还没有收录任何工具</h2>
+					<p class="muted">
+						这一页刚开张。如果你手上有给 agent 用的工具、MCP server 或者可复用模块，
+						欢迎提交 —— 审核通过后就会出现在这里。
+					</p>
+					<a class="btn btn--primary" href={submitUrl} target="_blank" rel="noopener noreferrer">
+						成为第一个 →
+					</a>
+				</div>
+			) : (
+				<div class="grid grid--2">
+					{tools.map(({ Content, entry, ...tool }) => (
+						<article class="tool card">
+							<header class="tool-head">
+								<h2>{tool.name}</h2>
+							</header>
+
+							<p class="tool-desc">{tool.description}</p>
+
+							{entry.body?.trim() && (
+								<div class="tool-body prose">
+									<Content />
+								</div>
+							)}
+
+							<footer class="tool-foot">
+								<ul class="tags">
+									{tool.tags.map((tag) => (
+										<li class="pill">{tag}</li>
+									))}
+								</ul>
+
+								<div class="tool-meta">
+									<span class="dim">由 @{tool.author} 提交</span>
+									<a
+										class="repo-link"
+										href={tool.repo}
+										target="_blank"
+										rel="noopener noreferrer nofollow"
+									>
+										查看仓库 →
+									</a>
+								</div>
+							</footer>
+						</article>
+					))}
+				</div>
+			)
+		}
+	</section>
+</BaseLayout>
+
+<style>
+	.cta {
+		display: flex;
+		gap: 12px;
+		margin-top: 24px;
+		flex-wrap: wrap;
+	}
+
+	.notice {
+		padding: 20px 24px;
+		margin-bottom: 28px;
+		border-color: var(--border-hi);
+	}
+
+	.notice strong {
+		display: block;
+		margin-bottom: 6px;
+		color: var(--text);
+		font-size: 0.95rem;
+	}
+
+	.notice p {
+		margin: 0;
+		font-size: 0.86rem;
+		line-height: 1.75;
+		max-width: 80ch;
+	}
+
+	.empty {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+		gap: 12px;
+		padding: 56px 28px;
+	}
+
+	.empty-icon {
+		font-size: 2.4rem;
+		margin: 0;
+		line-height: 1;
+	}
+
+	.empty h2 {
+		margin: 0;
+		font-size: 1.1rem;
+		color: var(--text);
+	}
+
+	.empty p {
+		margin: 0;
+		font-size: 0.88rem;
+		line-height: 1.7;
+		max-width: 52ch;
+	}
+
+	.empty .btn {
+		margin-top: 8px;
+	}
+
+	.tool {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+		padding: 24px;
+	}
+
+	.tool h2 {
+		margin: 0;
+		font-size: 1.05rem;
+		color: #fff;
+		font-family: var(--font-mono);
+		letter-spacing: -0.01em;
+		word-break: break-all;
+	}
+
+	.tool-desc {
+		margin: 0;
+		font-size: 0.88rem;
+		line-height: 1.75;
+		color: var(--text-muted);
+	}
+
+	/* 正文折叠，避免长文把卡片撑得参差不齐 */
+	.tool-body {
+		font-size: 0.85rem;
+		border-left: 2px solid var(--border-hi);
+		padding-left: 14px;
+		color: var(--text-muted);
+	}
+
+	.tool-body :global(p) {
+		margin: 0 0 10px;
+		line-height: 1.75;
+	}
+
+	.tool-body :global(pre) {
+		font-size: 0.8rem;
+	}
+
+	.tool-foot {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		flex-wrap: wrap;
+		margin-top: auto;
+		padding-top: 6px;
+	}
+
+	.tags {
+		display: flex;
+		gap: 6px;
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		flex-wrap: wrap;
+	}
+
+	.tags .pill {
+		font-size: 0.72rem;
+		padding: 2px 9px;
+	}
+
+	.tool-meta {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		flex-wrap: wrap;
+		font-size: 0.8rem;
+	}
+
+	.repo-link {
+		white-space: nowrap;
+	}
+
+	@media (max-width: 768px) {
+		.tool {
+			padding: 20px;
+		}
+
+		.empty {
+			padding: 40px 20px;
+		}
+	}
+</style>

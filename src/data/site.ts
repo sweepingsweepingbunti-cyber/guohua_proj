@@ -50,6 +50,11 @@ export const SITE = {
 		name: 'guohua', // ← 改成你的名字或昵称
 		bio: '在这里记录大模型的学习过程与工程实践，希望这些笔记能帮你少走一点弯路。',
 	},
+	/**
+	 * GitHub 仓库地址。投稿表单、Issue 模板、投稿页的按钮都由它拼出来，
+	 * 换仓库只改这一行。注意结尾不要带斜杠。
+	 */
+	repo: 'https://github.com/sweepingsweepingbunti-cyber/guohua_proj',
 	nav: [
 		{ href: '/', label: '首页' },
 		{ href: '/blog', label: '文章' },
@@ -57,6 +62,7 @@ export const SITE = {
 		{ href: '/column', label: '专栏' },
 		{ href: '/resources', label: '资源导航' },
 		{ href: '/projects', label: '项目' },
+		{ href: '/submit', label: '投稿' },
 		{ href: '/about', label: '关于' },
 	],
 	/** 留空字符串的项不会渲染 */

@@ -1,0 +1,127 @@
+# 投稿落盘：issue 表单 → submissions/ 隔离区 + 自动开 PR
+#
+# ⚠️⚠️ 这个文件里有一条不能破的规矩 ⚠️⚠️
+#
+#   issue 正文是**用户可控的字符串**，绝不能出现在 run: 里。
+#
+#   下面这种写法是 GitHub Actions 的经典脚本注入漏洞：
+#
+#       run: node scripts/intake.mjs "${{ github.event.issue.body }}"   # ← 千万别这么写
+#
+#   投稿人只要在正文里写 `"; rm -rf / #` 就能在 runner 上执行任意命令。
+#   正确做法是走 env:（见下面），值作为环境变量传递，不参与 shell 解析。
+#   脚本那边也只用 process.env 读，全程不拼 shell —— 两边都要守住。
+#
+# 落盘只写进 submissions/，那里不参与 Astro 构建（content collection 的 base
+# 是 src/content/blog 和 src/content/tools），所以这一步**不会**让内容上线。
+# 真正上站要等人工合并 PR + 本地跑 npm run promote。
+
+name: 投稿落盘
+
+on:
+  issues:
+    types: [opened, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  intake:
+    runs-on: ubuntu-latest
+
+    # 只处理投稿。优先看标签（表单会自动打上），标签万一不存在就退回看正文结构，
+    # 免得因为一个标签没建好就整条链路哑掉。
+    if: >-
+      contains(github.event.issue.labels.*.name, '投稿-文章') ||
+      contains(github.event.issue.labels.*.name, '投稿-工具') ||
+      contains(github.event.issue.body, '### 文章标题') ||
+      contains(github.event.issue.body, '### 工具名称')
+
+    steps:
+      - name: 取出仓库
+        uses: actions/checkout@v4
+
+      - name: 建分支
+        id: branch
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: echo "name=submission/issue-${ISSUE_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: 解析并落盘
+        id: intake
+        # ↓↓↓ 关键：正文从 env 走，不拼进 run ↓↓↓
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+          ISSUE_LABELS: ${{ join(github.event.issue.labels.*.name, ',') }}
+        run: |
+          git checkout -b "${{ steps.branch.outputs.name }}"
+          node scripts/intake.mjs
+
+      - name: 提交并推送
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          AUTHOR: ${{ github.event.issue.user.login }}
+          BRANCH: ${{ steps.branch.outputs.name }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add submissions/
+          git commit -m "submission: 来自 @${AUTHOR} 的投稿 (#${ISSUE_NUMBER})"
+          # issue 被 reopen 时分支可能已存在，这里直接覆盖
+          git push --force origin "$BRANCH"
+
+      - name: 开 PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          AUTHOR: ${{ github.event.issue.user.login }}
+          BRANCH: ${{ steps.branch.outputs.name }}
+        run: |
+          cat > /tmp/pr-body.md <<'PRBODY'
+          自动落盘的投稿，**还没有上线**。
+
+          文件目前在 `submissions/` 隔离区，不参与构建、不会被渲染成页面。
+
+          ### 审核清单
+
+          - [ ] 逐字读一遍正文，确认没有不适合公开的内容
+          - [ ] 确认没有内嵌 HTML（`<script>`、`<iframe>`、`onerror=` 等）
+          - [ ] 确认不是从 CSDN / 知乎等处抓来的第三方文章
+          - [ ] 合并这个 PR
+          - [ ] 本地跑 `npm run promote -- <隔离区文件路径>`（想换英文 URL 就加 `--slug`）
+          - [ ] `npm run build` 通过后 push，Netlify 会自动发布
+          - [ ] 回到原 issue 回一句，然后关掉
+
+          不想发布就直接关掉 PR 和原 issue，把隔离区里那份文件删掉即可。
+          PRBODY
+          # issue 被 reopen 时分支已存在、PR 也开过了，这时再 create 会报错让整个
+          # Action 变红 —— 先查一下，有 PR 就只更新正文。
+          EXISTING=$(gh pr list --head "$BRANCH" --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh pr edit "$EXISTING" --body-file /tmp/pr-body.md
+            echo "PR #${EXISTING} 已存在，正文已更新"
+          else
+            gh pr create \
+              --base main \
+              --head "$BRANCH" \
+              --title "投稿审核：来自 @${AUTHOR} 的 #${ISSUE_NUMBER}" \
+              --body-file /tmp/pr-body.md
+          fi
+
+      - name: 在 issue 里回话
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          BRANCH: ${{ steps.branch.outputs.name }}
+        run: |
+          printf '%s\n' \
+            '收到！已经落盘并开好了审核分支 `'"$BRANCH"'`。' \
+            '' \
+            '接下来我会人工审一遍，通过之后才会真正发布到站点上 —— 所以**现在还没上线**，不用重复提交。' \
+            > /tmp/comment.md
+          gh issue comment "$ISSUE_NUMBER" --body-file /tmp/comment.md

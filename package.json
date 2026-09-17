@@ -10,7 +10,11 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "promote": "node scripts/promote.mjs",
+    "check:links": "node scripts/check-links.mjs",
+    "check:templates": "node scripts/check-templates.mjs",
+    "check": "npm run check:templates"
   },
   "dependencies": {
     "astro": "^7.3.3"

@@ -13,7 +13,7 @@ interface Props {
 }
 
 const { post, headings, prev, next } = Astro.props;
-const { title, description, pubDate, updatedDate, category, tags } = post.data;
+const { title, description, pubDate, updatedDate, category, tags, credit } = post.data;
 
 const minutes = readingTime(post.body);
 
@@ -48,7 +48,8 @@ const hasUpdate = updatedDate && updatedDate.valueOf() !== pubDate.valueOf();
 					<span class="dot" aria-hidden="true">·</span>
 					<span>{minutes} 分钟阅读</span>
 					<span class="dot" aria-hidden="true">·</span>
-					<span>{SITE.author.name}</span>
+					{/* credit 只在社区投稿的文章上有，作者自己的文章不显示 */}
+					<span>{credit ? `本文由 @${credit} 投稿` : SITE.author.name}</span>
 				</div>
 
 				{

@@ -2,7 +2,9 @@
 
 从原理到实战的大模型学习分享平台。基于 Astro 构建，通过 Git → Netlify 自动部署到 **[guohua0siqi.online](https://guohua0siqi.online)**。
 
-包含六个模块：**文章博客**、**学习路线**、**学习专栏**、**资源导航**、**开发项目**、**关于 + 订阅**。
+包含八个模块：**文章博客**、**学习路线**、**学习专栏**、**资源导航**、**开发项目**、**投稿**、**社区工具**、**关于 + 订阅**。
+
+投稿走 GitHub issue 表单 → 自动落盘到隔离区 → 人工审核 → 提升发布，见下方「投稿流程」。
 
 ---
 
@@ -129,6 +131,66 @@ steps:
 
 ---
 
+## 投稿流程（访客 → 审核 → 发布）
+
+站点是纯静态的，没有后端能接表单提交。所以投稿借 GitHub 的通道走，分三步：
+
+```
+访客填 GitHub issue 表单
+      ↓
+Action 自动落盘到 submissions/（隔离区）+ 开审核 PR
+      ↓
+你审 PR → 合并 → 本地跑 npm run promote → push → Netlify 发布
+```
+
+### 为什么要隔离区
+
+`submissions/` **不参与构建** —— Astro 内容集合的 base 是 `src/content/blog` 和
+`src/content/tools`，隔离区不在其中。所以投稿合并进来也**不会**被渲染成页面，
+不会出现在任何列表或 RSS 里。真正上站必须由你手动跑提升命令，这是结构性保证。
+
+### 你平时要做的只有两件事
+
+```bash
+# 1. 合并 PR 之后，把投稿提升成正式内容
+npm run promote -- submissions/articles/issue-12.md --slug my-post-name
+npm run promote -- submissions/tools/issue-12.md
+
+# 2. 构建并推送
+npm run build && git add . && git commit -m "publish: ..." && git push
+```
+
+`--slug` 不给的话会用标题自动生成；中文标题会生成中文 URL（合法，但会变成一长串
+百分号编码），所以脚本会提醒你，建议给个英文的。
+
+### ⚠️ 关于正文里的 HTML
+
+Astro 7 默认的 Markdown 处理器**不做转义也不做剥离** —— 正文里的 `<script>` 会原样
+出现在构建产物里，也就会在每个访客浏览器里执行。这是**实测确认**的，不是推测。
+
+所以 `promote` 会扫描正文里的危险 HTML，命中就拒绝并列出具体行号，加 `--strip`
+才自动删除；而且无论哪条路径，写盘前都会再扫一遍，保证**不会写出仍含危险 HTML 的文件**。
+
+但要清楚：**这是检查，不是 sanitizer。** 真正的保证来自「发布前你亲自读过一遍正文」。
+
+### 提交内容会不会把我自己的东西带上去
+
+不会。隔离区只收访客通过 issue 表单提交的内容，和仓库外的本地项目、资料没有任何关系。
+内容红线（见下一节）对投稿同样适用 —— 审核时按同一套标准卡。
+
+### 改完投稿表单要自检
+
+Issue 表单的字段名、`scripts/intake.mjs` 的字段映射、分类下拉选项，这三处是靠
+字符串约定连起来的，改漏一处只会在**别人投稿时**才炸，而且炸在 GitHub 上，本地看不见：
+
+```bash
+node scripts/check-templates.mjs    # 三处是否还对得上
+```
+
+完整说明见 `submissions/README.md`。
+
+---
+
 ## 学习专栏
 
 `/column` 是一份 AI 学习资料的**目录框架**：14 个模块、85 个子主题，从数学基础一路到 AI-EDA。
@@ -191,8 +253,17 @@ export const SITE = {
 ```text
 solar-series/
 ├── astro.config.mjs          站点地址 + Shiki 代码高亮主题
+├── .github/
+│   ├── ISSUE_TEMPLATE/       投稿表单（字段名被 scripts/intake.mjs 解析，改字要同步）
+│   └── workflows/intake.yml  issue → 隔离区落盘 + 开 PR
+├── scripts/
+│   ├── intake.mjs            解析投稿表单、校验、写进隔离区
+│   ├── promote.mjs           ★ 提升命令，含危险 HTML 挡板
+│   ├── check-templates.mjs   表单字段 ↔ 脚本字段 ↔ 分类列表 一致性自检
+│   └── check-links.mjs       全站内部链接复查（静态站死链构建时不报错）
+├── submissions/              ★ 隔离区，不参与构建，见 submissions/README.md
 ├── src/
-│   ├── content.config.ts     内容集合定义（blog / paths 的字段与校验）
+│   ├── content.config.ts     内容集合定义（blog / paths / tools 的字段与校验）
 │   ├── data/
 │   │   ├── site.ts           ★ 站点配置，改站名导航来这里
 │   │   ├── resources.ts      资源导航的数据
@@ -204,7 +275,8 @@ solar-series/
 │   ├── layouts/              BaseLayout（全站骨架）/ PostLayout（文章页）
 │   ├── content/
 │   │   ├── blog/             文章，一篇一个 .md
-│   │   └── paths/            学习路线
+│   │   ├── paths/            学习路线
+│   │   └── tools/            社区工具（由 promote 写入）
 │   └── pages/
 │       ├── index.astro       首页
 │       ├── blog/             列表 / 详情 / 分类 / 标签
@@ -212,6 +284,8 @@ solar-series/
 │       ├── resources.astro   资源导航
 │       ├── projects.astro    开发项目
 │       ├── column.astro      学习专栏
+│       ├── submit.astro      投稿指南
+│       ├── tools/            社区工具展示页
 │       ├── about.astro       关于
 │       ├── rss.xml.ts        RSS（手写，无依赖）
 │       ├── sitemap.xml.ts    Sitemap（手写，无依赖）
